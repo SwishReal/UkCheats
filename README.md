@@ -9,4 +9,6 @@ Avaible on [Thunderstore](https://thunderstore.io/c/ultrakill/p/SwishReal/UkChea
 This simple mod adding some cheats functions in game! For use you need to install BepInEx and PluginConfigurator. It working on ULTRAKILL REVAMP_UPDATE
 
 # Functions
-All ULTRAKILL Cheats and Infinite Stamina
+* Almost all ULTRAKILL Cheats
+* Auto Complete Level
+* Infinite Stamina
