@@ -9,6 +9,7 @@ using System.Collections;
 using ULTRAKILL.Cheats;
 using PluginConfig.API.Decorators;
 using System.IO;
+using UnityEngine.Localization.SmartFormat.Utilities;
 
 namespace UKCheats
 {
@@ -19,11 +20,12 @@ namespace UKCheats
         // Mod info
         public const string pluginGuid = "swish.ultrakill.cheats";
         public const string pluginName = "UK Cheats";
-        public const string pluginVersion = "2.1.0";
+        public const string pluginVersion = "2.2.1";
 
         // Game components
         private NewMovement movementController;
         private CheatsManager cheatsManager;
+        private AssistController assistController;
 
         // Cheats state
         private bool isInfHealth;
@@ -58,7 +60,10 @@ namespace UKCheats
         private ConfigPanel weaponsPanel;
         private ConfigPanel enemiesPanel;
 
+        private BoolField safeMod;
+
         private BoolField full_bright;
+        private BoolField summonSandboxArmField;
         private BoolField _invincibility;
 
         private BoolField _noclip;
@@ -78,6 +83,7 @@ namespace UKCheats
 
         // Hakita, yours game protection is beatiful!
         private FullBright fullBright = new FullBright();
+        private SummonSandboxArm summonSandboxArm = new SummonSandboxArm();
         private Invincibility invincibility = new Invincibility();
 
         private Noclip noclip = new Noclip();
@@ -115,6 +121,8 @@ namespace UKCheats
             enemiesPanel = new ConfigPanel(config.rootPanel, "Enemies", "general_panel");
 
             // Creating options
+            safeMod = new BoolField(config.rootPanel, "Safe Mod", "safe_mod", true, true);
+
             //Auto-Complete
             gameRanksField = new EnumField<GameRanks>(autoCompleteLevel, "Rank", "rank", GameRanks.P);
             withDamage = new BoolField(autoCompleteLevel, "Damaged", "damaged", false, false);
@@ -123,6 +131,7 @@ namespace UKCheats
             // General
 
             full_bright = new BoolField(generalPanel, "Full Bright", "full_bright", false);
+            summonSandboxArmField = new BoolField(generalPanel, "Spawner Arm", "summon_sandbox_arm", false);
             _invincibility = new BoolField(generalPanel, "Invincibility", "invincibility", false);
 
             // Movement
@@ -147,12 +156,15 @@ namespace UKCheats
             kill_all_enemies = new ButtonField(enemiesPanel, "Kill All Enemies", "kill_all_enemies");
 
             // Adding to options lamda expressions
+            safeMod.onValueChange += (e) => { assistController.cheatsEnabled = e.value; };
+
             //Auto-Complete
             completeLevelButton.onClick += () => { AutoCompleteCheat(gameRanksField.value, withDamage.value); };
 
             // General
 
             full_bright.onValueChange += (e) => { cheatsManager.SetCheatActive(fullBright, e.value, false); };
+            summonSandboxArmField.onValueChange += (e) => { cheatsManager.SetCheatActive(summonSandboxArm, e.value, false); };
             _invincibility.onValueChange += (e) => { cheatsManager.SetCheatActive(invincibility, e.value, false); };
 
             // Movement
@@ -202,8 +214,9 @@ namespace UKCheats
 
                 movementController = FindObjectOfType<NewMovement>();
                 cheatsManager = FindObjectOfType<CheatsManager>();
+                assistController = FindObjectOfType<AssistController>();
 
-                if (movementController != null && cheatsManager != null)
+                if (movementController != null && cheatsManager != null && assistController != null)
                 {
                     Logger.LogInfo("[UKCheats] All game components found!");
                     yield break;
@@ -215,7 +228,7 @@ namespace UKCheats
 
         public void Update()
         {
-            if (movementController == null || cheatsManager == null)
+            if (movementController == null || cheatsManager == null || assistController == null)
                 return;
 
             if (isInfHealth && movementController.hp < 100f)
@@ -227,6 +240,11 @@ namespace UKCheats
             if (isInfDash && movementController.boostCharge < 300f)
             {
                 movementController.FullStamina();
+            }
+
+            if (assistController.cheatsEnabled != safeMod.value)
+            {
+                assistController.cheatsEnabled = safeMod.value;
             }
         }
 
@@ -313,6 +331,7 @@ namespace UKCheats
             // General
 
             full_bright.value = full_bright.defaultValue;
+            summonSandboxArmField.value = summonSandboxArmField.defaultValue;
             _invincibility.value = _invincibility.defaultValue;
 
             // Movement
